@@ -1,74 +1,51 @@
 const { io } = require('../server');
-<<<<<<< HEAD
-const { TicketControl } = require('../classes/ticket-control')
+const { TicketControl } = require('../classes/ticket-control');
+
 
 const ticketControl = new TicketControl();
 
-io.on('connection', (cliente) => {
 
-    cliente.on('siguienteTicket', (data, callback) => {
-        let Siguiente = ticketControl.Siguiente();
-        console.log('Enviando siguiente ticket', Siguiente);
-        callback({ Siguiente });
+
+io.on('connection', (client) => {
+
+    client.on('siguienteTicket', (data, callback) => {
+
+        let siguiente = ticketControl.siguiente();
+
+        console.log(siguiente);
+        callback(siguiente);
     });
 
-    //Emitir un evento Estado Actual
 
-    cliente.on('Actual', (data, callback) => {
-        let Actual = ticketControl.UltimoTicket();
-        let Ultimos = ticketControl.Ultimos();
-        console.log('Enviando ultimo ticket');
-        callback({ Actual, Ultimos });
+    client.emit('estadoActual', {
+        actual: ticketControl.getUltimoTicket(),
+        ultimos4: ticketControl.getUltimos4()
     });
 
-    cliente.on('atenderTicket', (data, callback) => {
+    client.on('atenderTicket', (data, callback) => {
+
         if (!data.escritorio) {
             return callback({
                 err: true,
                 mensaje: 'El escritorio es necesario'
-            })
-        };
-        let atenderTicket = ticketControl.AtenderTicket(data.escritorio);
+            });
+        }
 
-        let Ultimos = ticketControl.Ultimos();
-        cliente.broadcast.emit('NuevaAtencion', Ultimos);
-        console.log("Nuevo");
-        callback(null, atenderTicket);
 
-    });
+        let atenderTicket = ticketControl.atenderTicket(data.escritorio);
 
-=======
 
-io.on('connection', (client) => {
-    console.log('Usuario conectado');
+        callback(atenderTicket);
 
-    //hablar con el cliente
-    client.emit('enviarMensaje', {
-        usuario: 'Admin',
-        mensaje: 'Bienvenido a esta aplicación'
-    });
+        // actualizar/ notificar cambios en los ULTIMOS 4
+        client.broadcast.emit('ultimos4', {
+            ultimos4: ticketControl.getUltimos4()
+        });
 
-    client.on('disconnect', () => {
-        console.log('Usuario desconectado');
-    });
-
-    //escuchar cliente
-    client.on('enviarMensaje', (data, callback) => {
-        console.log(data);
-        client.broadcast.emit('enviarMensaje', data);
-
-        // if (mensaje.usuario) {
-        //     callback({
-        //         resp: 'TODO SALIO BIEN'
-        //     });
-        // } else {
-        //     callback({
-        //         resp: 'TODO SALIO MAL!!!'
-        //     })
-        // }
 
     });
 
 
->>>>>>> a9cfbe6446f9fde7767debad46d919cbac75ee61
+
+
 });
